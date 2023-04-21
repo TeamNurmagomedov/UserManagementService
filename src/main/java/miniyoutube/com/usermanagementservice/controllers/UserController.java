@@ -50,6 +50,11 @@ public class UserController {
         return userService.getEmail(id);
     }
 
+    @GetMapping(path = "username")
+    public String getUsername(@RequestParam("id") String id) {
+        return userService.getUsername(id);
+    }
+
     @PostMapping(path = "logout")
     public ResponseEntity<?> logout() {
         session.invalidate();
