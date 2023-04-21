@@ -46,7 +46,7 @@ public class UserController {
     }
 
     @GetMapping(path = "email")
-    public String getEmail(@RequestBody String id) {
+    public String getEmail(@RequestParam("id") String id) {
         return userService.getEmail(id);
     }
 
