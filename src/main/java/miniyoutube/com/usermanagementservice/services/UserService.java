@@ -51,4 +51,13 @@ public class UserService {
         }
     }
 
+    public String getUsername(String id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            return user.get().getUsername();
+        } else {
+            throw new IllegalArgumentException("User not found.");
+        }
+    }
+
 }
