@@ -46,9 +46,7 @@ public class UserController {
     }
 
     @GetMapping(path = "email")
-    public String getEmail(HttpServletRequest request) {
-        String rawCookie = request.getHeader("Cookie");
-        String id = rawCookie.substring(0,rawCookie.indexOf(";")); String token=(String)session.getAttribute("token");
+    public String getEmail(@RequestBody String id) {
         return userService.getEmail(id);
     }
 
