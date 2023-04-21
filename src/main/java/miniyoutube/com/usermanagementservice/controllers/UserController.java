@@ -1,5 +1,7 @@
 package miniyoutube.com.usermanagementservice.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import miniyoutube.com.usermanagementservice.dtos.RegisterDTO;
 import miniyoutube.com.usermanagementservice.dtos.UserDTO;
 import miniyoutube.com.usermanagementservice.services.UserService;
@@ -14,6 +16,9 @@ public class UserController {
     private final UserService userService;
 
     @Autowired
+    HttpSession session;
+
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -24,23 +29,16 @@ public class UserController {
     }
 
     @PostMapping(path = "login")
-    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
+    public ResponseEntity login(@RequestBody UserDTO userDTO) {
         try {
             String id = userService.Login(userDTO);
             if (id != null) {
-                ResponseCookie springCookie = ResponseCookie.from("user-id", id)
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .maxAge(86400) // 1 day in seconds
-                        .domain("localhost")
-                        .build();
-                return ResponseEntity
-                        .ok()
-                        .header(HttpHeaders.SET_COOKIE, springCookie.toString())
-                        .build();
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Set-Cookie", id);
+                session.setAttribute("token", id);
+                return ResponseEntity.status(HttpStatus.OK).headers(headers).body("Welcome " + id);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid credentials.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid credentials");
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatusCode.valueOf(400), e.getMessage());
@@ -48,19 +46,16 @@ public class UserController {
     }
 
     @GetMapping(path = "email")
-    public String getEmail(@CookieValue("user-id") String id) {
+    public String getEmail(HttpServletRequest request) {
+        String rawCookie = request.getHeader("Cookie");
+        String id = rawCookie.substring(0,rawCookie.indexOf(";")); String token=(String)session.getAttribute("token");
         return userService.getEmail(id);
     }
 
     @PostMapping(path = "logout")
     public ResponseEntity<?> logout() {
-        ResponseCookie deleteSpringCookie = ResponseCookie
-                .from("user-id", null)
-                .build();
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.SET_COOKIE, deleteSpringCookie.toString())
-                .build();
+        session.invalidate();
+        return ResponseEntity.status(HttpStatus.OK).body("Logout successful");
     }
 
 }
